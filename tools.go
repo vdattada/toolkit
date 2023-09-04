@@ -15,7 +15,8 @@ import (
 const randomStringSource = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_+"
 
 type Tools struct {
-	MaxFileSize int64
+	MaxFileSize      int64
+	AllowedFileTypes []string
 }
 
 func (t *Tools) RandomString(n int) string {
@@ -64,7 +65,9 @@ func (t *Tools) UploadFiles(r *http.Request, uploadDir string, rename ...bool) (
 	}
 
 	allowedTypes := []string{"image/jpeg", "image/gif", "image/png"}
-
+	if len(t.AllowedFileTypes) == 0 {
+		t.AllowedFileTypes = allowedTypes
+	}
 	for _, fHeaders := range r.MultipartForm.File {
 		for _, hdr := range fHeaders {
 			uploadedFiles, err = func(uploadedFiles []*UploadedFile) ([]*UploadedFile, error) {
@@ -83,8 +86,8 @@ func (t *Tools) UploadFiles(r *http.Request, uploadDir string, rename ...bool) (
 				//TODO =- check to see if filetype is permitted
 				allowed := false
 				fileType := http.DetectContentType(buff)
-				if len(allowedTypes) > 0 {
-					for _, x := range allowedTypes {
+				if len(t.AllowedFileTypes) > 0 {
+					for _, x := range t.AllowedFileTypes {
 						if strings.EqualFold(fileType, x) {
 							allowed = true
 						}
